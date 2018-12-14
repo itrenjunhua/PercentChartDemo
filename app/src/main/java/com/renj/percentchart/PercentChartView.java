@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
@@ -37,10 +39,19 @@ public class PercentChartView extends View {
     private List<String> yAxisLabels = new ArrayList<>(Arrays.asList("", "清醒", "浅睡", "深睡", ""));
 
     private List<DataBean> dataBeans = new ArrayList<>();
-
+    // 网格线画笔
     private Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // 标签画笔
     private Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // 背景色画笔
     private Paint colorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private float yLabelsWidth = 120;  // y 轴方向标签宽度
+    private float xLabelsHeight = 100; // x 轴方向标签高度
+    private float xLabelPadding = 12;  // x 轴标签名距离x轴的距离
+    private float yLabelPadding = 12;  // y 轴标签名距离y轴的距离
+    private float xOffsetWidth = 40;   // x 方向偏移量，用于保证文字居中，最后边一个文字也不会偏移出控件范围
+    private float yOffsetWidth = 30;   // y 方向偏移量，用于保证文字居中，最上边一个文字也不会偏移出控件范围
 
     public PercentChartView(Context context) {
         this(context, null);
@@ -60,7 +71,7 @@ public class PercentChartView extends View {
         linePaint.setColor(Color.BLACK);
 
         textPaint.setColor(Color.RED);
-        textPaint.setTextSize(30);
+        textPaint.setTextSize(28);
 
         colorPaint.setStyle(Paint.Style.FILL);
 
@@ -112,14 +123,14 @@ public class PercentChartView extends View {
     }
 
     private void drawFillColor(int measuredWidth, int measuredHeight, Canvas canvas) {
-        float startXValue = 120;
+        float startXValue = yLabelsWidth;
 
         int size = yAxisLabels.size();
-        float spacing = (measuredHeight - 100 - 30) * 1.0f / (size - 1);
-        float startYValue = measuredHeight - 100;
+        float spacing = (measuredHeight - xLabelsHeight - yOffsetWidth) * 1.0f / (size - 1);
+        float startYValue = measuredHeight - xLabelsHeight;
         for (DataBean dataBean : dataBeans) {
-            float endXValue = startXValue + dataBean.percent * (measuredWidth - 120 - 40);
-            float endYValue = (yAxisLabels.size() - 1 - dataBean.yValue) * spacing + 30;
+            float endXValue = startXValue + dataBean.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
+            float endYValue = (yAxisLabels.size() - 1 - dataBean.yValue) * spacing + yOffsetWidth;
             colorPaint.setColor(dataBean.color);
             canvas.drawRect(startXValue, startYValue, endXValue, endYValue, colorPaint);
             startXValue = endXValue;
@@ -128,35 +139,45 @@ public class PercentChartView extends View {
 
     private void drawYText(int measuredWidth, int measuredHeight, Canvas canvas) {
         int size = yAxisLabels.size();
-        float spacing = (measuredHeight - 100 - 30) * 1.0f / (size - 1);
+        float spacing = (measuredHeight - xLabelsHeight - yOffsetWidth) * 1.0f / (size - 1);
         for (int i = 0; i < size; i++) {
-            canvas.drawText(yAxisLabels.get(size - 1 - i), 40, i * spacing + 30 + 10, textPaint);
+            String text = yAxisLabels.get(size - 1 - i);
+            Rect textRect = measureTextSize(text);
+            canvas.drawText(text, yLabelsWidth - textRect.width() - yLabelPadding, i * spacing + yOffsetWidth + textRect.height() / 2, textPaint);
         }
     }
 
     private void drawXText(int measuredWidth, int measuredHeight, Canvas canvas) {
         int size = xAxisLabels.size();
-        float spacing = (measuredWidth - 120 - 40) * 1.0f / (size - 1);
+        float spacing = (measuredWidth - yLabelsWidth - xOffsetWidth) * 1.0f / (size - 1);
         for (int i = 0; i < size; i++) {
-            float startX = i * spacing + 120;
-            canvas.drawText(xAxisLabels.get(i), startX - 30, measuredHeight - 50, textPaint);
+            float startX = i * spacing + yLabelsWidth;
+            String text = xAxisLabels.get(i);
+            Rect textRect = measureTextSize(text);
+            canvas.drawText(text, startX - yOffsetWidth, measuredHeight - (xLabelsHeight - textRect.height() - xLabelPadding), textPaint);
         }
+    }
+
+    private Rect measureTextSize(@NonNull String text) {
+        Rect bounds = new Rect();
+        textPaint.getTextBounds(text, 0, text.length(), bounds);
+        return bounds;
     }
 
     private void drawXLine(int measuredWidth, int measuredHeight, Canvas canvas) {
         int size = yAxisLabels.size();
-        float spacing = (measuredHeight - 100 - 30) * 1.0f / (size - 1);
+        float spacing = (measuredHeight - xLabelsHeight - yOffsetWidth) * 1.0f / (size - 1);
         for (int i = 0; i < size; i++) {
-            canvas.drawLine(120, i * spacing + 30, measuredWidth - 40, i * spacing + 30, linePaint);
+            canvas.drawLine(yLabelsWidth, i * spacing + yOffsetWidth, measuredWidth - xOffsetWidth, i * spacing + yOffsetWidth, linePaint);
         }
     }
 
     private void drawYLine(int measuredWidth, int measuredHeight, Canvas canvas) {
         int size = xAxisLabels.size();
-        float spacing = (measuredWidth - 120 - 40) * 1.0f / (size - 1);
+        float spacing = (measuredWidth - yLabelsWidth - xOffsetWidth) * 1.0f / (size - 1);
         for (int i = 0; i < size; i++) {
-            float startX = i * spacing + 120;
-            canvas.drawLine(startX, 30, startX, measuredHeight - 100, linePaint);
+            float startX = i * spacing + yLabelsWidth;
+            canvas.drawLine(startX, yOffsetWidth, startX, measuredHeight - xLabelsHeight, linePaint);
         }
     }
 
