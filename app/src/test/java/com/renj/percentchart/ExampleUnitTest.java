@@ -1,4 +1,4 @@
-package percentchart.renj.com.percentchartdemo;
+package com.renj.percentchart;
 
 import org.junit.Test;
 

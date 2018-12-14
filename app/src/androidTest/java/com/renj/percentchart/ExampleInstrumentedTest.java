@@ -1,4 +1,4 @@
-package percentchart.renj.com.percentchartdemo;
+package com.renj.percentchart;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
