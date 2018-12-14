@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:pcv="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
     <com.renj.percentchart.PercentChartView
+        android:id="@+id/percent_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="80dp" />
+        android:layout_margin="80dp"
+        pcv:x_axisColor="#ff0000"
+        pcv:x_axisWidth="1dp"
+        pcv:y_axisColor="#ff0000"
+        pcv:y_axisWidth="1dp" />
 
 </LinearLayout>
