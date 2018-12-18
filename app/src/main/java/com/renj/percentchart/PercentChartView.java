@@ -47,11 +47,11 @@ public class PercentChartView extends View {
 
     private float xLabelsHeight = 50;     // x 轴方向标签高度
     private float xLabelPadding = 6;      // x 轴标签名距离x轴的距离
-    private float xOffsetWidth = 20;      // x 方向偏移量，用于保证文字居中，最后边一个文字也不会偏移出控件范围
+    private float xOffsetWidth = 20;      // x 方向偏移量，用于保证最后边一个文字不会偏移出控件范围
 
     private float yLabelsWidth = 60;      // y 轴方向标签宽度
     private float yLabelPadding = 6;      // y 轴标签名距离y轴的距离
-    private float yOffsetHeight = 15;      // y 方向偏移量，用于保证文字居中，最上边一个文字也不会偏移出控件范围
+    private float yOffsetHeight = 15;     // y 方向偏移量，用于保证最上边一个文字不会偏移出控件范围
 
     private boolean isDrawXGrid = true;   // 是否绘制x方向网格线
     private float xAxisWidth = 1;         // x轴线宽度
@@ -62,10 +62,10 @@ public class PercentChartView extends View {
     private float xLabelSize = 14;        // x 轴上标签文字大小
     private int xLabelColor = 0xFF111111; // x 轴上标签文字颜色
 
-    private boolean isDrawYGrid = true;  // 是否绘制y方向网格线
+    private boolean isDrawYGrid = true;   // 是否绘制y方向网格线
     private float yAxisWidth = 1;         // y轴线宽度
     private int yAxisColor = 0xFF111111;  // y轴线颜色
-    private float yGridWidth = 0.5f;        // y轴方向网格线宽度
+    private float yGridWidth = 0.5f;      // y轴方向网格线宽度
     private int yGridColor = 0xFFDDDDDD;  // y轴方向网格线颜色
 
     private float yLabelSize = 14;        // y 轴上标签文字大小
@@ -585,30 +585,30 @@ public class PercentChartView extends View {
      * @param canvas
      */
     private void drawFillColor(int measuredWidth, int measuredHeight, Canvas canvas) {
-        float startXValue = yLabelsWidth;
+        float left = yLabelsWidth;
 
         int size = yAxisLabels.size();
         float spacing = (measuredHeight - xLabelsHeight - yOffsetHeight) * 1.0f / (size - 1);
-        float startYValue = measuredHeight - xLabelsHeight;
+        float bottom = measuredHeight - xLabelsHeight;
         for (PercentChartEntity percentChartEntity : percentChartEntities) {
-            float endXValue = startXValue + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
-            float endYValue = (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing + yOffsetHeight;
+            float right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
+            float top = (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing + yOffsetHeight;
             colorPaint.setColor(percentChartEntity.color);
-            canvas.drawRect(startXValue, startYValue, endXValue, endYValue, colorPaint);
-            startXValue = endXValue;
+            canvas.drawRect(left, top, right, bottom, colorPaint);
+            left = right;
         }
     }
 
     /**
-     * 绘制x轴向标签
+     * 绘制y轴向标签
      *
      * @param measuredWidth
      * @param measuredHeight
      * @param canvas
      */
     private void drawYText(int measuredWidth, int measuredHeight, Canvas canvas) {
-        textPaint.setTextSize(xLabelSize);
-        textPaint.setColor(xLabelColor);
+        textPaint.setTextSize(yLabelSize);
+        textPaint.setColor(yLabelColor);
 
         int size = yAxisLabels.size();
         float spacing = (measuredHeight - xLabelsHeight - yOffsetHeight) * 1.0f / (size - 1);
@@ -627,16 +627,16 @@ public class PercentChartView extends View {
      * @param canvas
      */
     private void drawXText(int measuredWidth, int measuredHeight, Canvas canvas) {
-        textPaint.setTextSize(yLabelSize);
-        textPaint.setColor(yLabelColor);
+        textPaint.setTextSize(xLabelSize);
+        textPaint.setColor(xLabelColor);
 
         int size = xAxisLabels.size();
         float spacing = (measuredWidth - yLabelsWidth - xOffsetWidth) * 1.0f / (size - 1);
         for (int i = 0; i < size; i++) {
-            float startX = i * spacing + yLabelsWidth;
             String text = xAxisLabels.get(i);
             Rect textRect = measureTextSize(text);
-            canvas.drawText(text, startX - yOffsetHeight, measuredHeight - (xLabelsHeight - textRect.height() - xLabelPadding), textPaint);
+            float startX = i * spacing + yLabelsWidth - textRect.width() / 2;
+            canvas.drawText(text, startX, measuredHeight - (xLabelsHeight - textRect.height() - xLabelPadding), textPaint);
         }
     }
 
