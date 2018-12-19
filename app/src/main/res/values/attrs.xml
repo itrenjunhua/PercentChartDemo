@@ -47,6 +47,11 @@
         <attr name="y_labelSize" format="dimension" />
         <!--y 轴上标签文字颜色-->
         <attr name="y_labelColor" format="color" />
+
+        <!--是否需要动画，默认需要-->
+        <attr name="is_need_animation" format="boolean" />
+        <!--动画时长，默认 1200 毫秒-->
+        <attr name="animation_duration" format="integer" />
     </declare-styleable>
 
 </resources>

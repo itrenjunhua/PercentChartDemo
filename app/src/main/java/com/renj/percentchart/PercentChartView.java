@@ -1,5 +1,6 @@
 package com.renj.percentchart;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -51,7 +52,7 @@ public class PercentChartView extends View {
 
     private float yLabelsWidth = 60;      // y 轴方向标签宽度
     private float yLabelPadding = 6;      // y 轴标签名距离y轴的距离
-    private float yOffsetHeight = 15;     // y 方向偏移量，用于保证最上边一个文字不会偏移出控件范围
+    private float yOffsetHeight = 15;      // y 方向偏移量，用于保证最上边一个文字不会偏移出控件范围
 
     private boolean isDrawXGrid = true;   // 是否绘制x方向网格线
     private float xAxisWidth = 1;         // x轴线宽度
@@ -62,14 +63,19 @@ public class PercentChartView extends View {
     private float xLabelSize = 14;        // x 轴上标签文字大小
     private int xLabelColor = 0xFF111111; // x 轴上标签文字颜色
 
-    private boolean isDrawYGrid = true;   // 是否绘制y方向网格线
+    private boolean isDrawYGrid = true;  // 是否绘制y方向网格线
     private float yAxisWidth = 1;         // y轴线宽度
     private int yAxisColor = 0xFF111111;  // y轴线颜色
-    private float yGridWidth = 0.5f;      // y轴方向网格线宽度
+    private float yGridWidth = 0.5f;        // y轴方向网格线宽度
     private int yGridColor = 0xFFDDDDDD;  // y轴方向网格线颜色
 
     private float yLabelSize = 14;        // y 轴上标签文字大小
     private int yLabelColor = 0xFF111111; // y 轴上标签文字颜色
+
+    private boolean isAnimation = true;   // 是否需要动画，默认有
+    private long animationDuration = 1200; // 动画时间，单位 ms
+    private float percentValue = 0;
+    private ValueAnimator valueAnimator;
 
 
     public PercentChartView(Context context) {
@@ -120,6 +126,16 @@ public class PercentChartView extends View {
 
         yLabelSize = typedArray.getDimension(R.styleable.PercentChartView_y_labelSize, yLabelSize);
         yLabelColor = typedArray.getColor(R.styleable.PercentChartView_y_labelColor, yLabelColor);
+
+        isAnimation = typedArray.getBoolean(R.styleable.PercentChartView_is_need_animation, isAnimation);
+        animationDuration = typedArray.getInteger(R.styleable.PercentChartView_animation_duration, (int) animationDuration);
+
+        typedArray.recycle();
+
+        if (isAnimation) {
+            initAnimation();
+            valueAnimator.setDuration(animationDuration);
+        }
 
     }
 
@@ -177,7 +193,15 @@ public class PercentChartView extends View {
      */
     public void setChartData(List<PercentChartEntity> percentChartEntities) {
         this.percentChartEntities = percentChartEntities;
-        this.postInvalidate();
+        if (isAnimation) {
+            if (valueAnimator == null) initAnimation();
+            if (valueAnimator.isRunning()) valueAnimator.cancel();
+            valueAnimator.setDuration(animationDuration);
+            valueAnimator.start();
+        } else {
+            percentValue = 1;
+            this.postInvalidate();
+        }
     }
 
     /**
@@ -541,6 +565,46 @@ public class PercentChartView extends View {
     }
 
     /**
+     * 是否需要动画
+     *
+     * @return
+     */
+    public boolean isAnimation() {
+        return isAnimation;
+    }
+
+    /**
+     * 设置是否需要动画
+     *
+     * @param animation
+     */
+    public void setAnimation(boolean animation) {
+        this.isAnimation = animation;
+        if (isAnimation && valueAnimator == null)
+            initAnimation();
+    }
+
+    /**
+     * 获取动画时间，单位：ms
+     *
+     * @return
+     */
+    public long getAnimationDuration() {
+        return animationDuration;
+    }
+
+    /**
+     * 设置动画时间，单位：ms
+     *
+     * @param animationDuration
+     */
+    public void setAnimationDuration(long animationDuration) {
+        this.animationDuration = animationDuration;
+        if (valueAnimator != null)
+            valueAnimator.setDuration(animationDuration);
+    }
+
+    /**
      * 重绘页面
      */
     public void invalidateView() {
@@ -592,11 +656,26 @@ public class PercentChartView extends View {
         float bottom = measuredHeight - xLabelsHeight;
         for (PercentChartEntity percentChartEntity : percentChartEntities) {
             float right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
-            float top = (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing + yOffsetHeight;
+            float top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing * percentValue;
             colorPaint.setColor(percentChartEntity.color);
             canvas.drawRect(left, top, right, bottom, colorPaint);
             left = right;
         }
+    }
+
+    /**
+     * 初始化动画
+     */
+    private void initAnimation() {
+        valueAnimator = ValueAnimator.ofFloat(0, 1);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                percentValue = (float) animation.getAnimatedValue();
+                postInvalidate();
+            }
+        });
+        valueAnimator.setDuration(animationDuration);
     }
 
     /**

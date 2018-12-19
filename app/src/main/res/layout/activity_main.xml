@@ -4,16 +4,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/bt_reload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="重新加载数据" />
 
     <com.renj.percentchart.PercentChartView
         android:id="@+id/percent_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="80dp"
+        android:layout_height="0dp"
+        android:layout_margin="20dp"
+        android:layout_weight="1"
         pcv:x_axisColor="#ff0000"
         pcv:x_axisWidth="1dp"
+        pcv:x_labelSize="11sp"
         pcv:y_axisColor="#ff0000"
-        pcv:y_axisWidth="1dp" />
+        pcv:y_axisWidth="1dp"
+        pcv:y_labelSize="12sp" />
 
 </LinearLayout>

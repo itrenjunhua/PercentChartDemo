@@ -3,6 +3,8 @@ package com.renj.percentchart;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,13 +12,23 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Button btReLoad;
     private PercentChartView percentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        btReLoad = findViewById(R.id.bt_reload);
         percentView = findViewById(R.id.percent_view);
+
+
+        btReLoad.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setData();
+            }
+        });
 
         setData();
     }
@@ -36,9 +48,9 @@ public class MainActivity extends AppCompatActivity {
             percentChartEntity.percent = tempValue;
             int yValue = random.nextInt(3) + 1;
             percentChartEntity.yValue = yValue;
-            if (yValue == 1) percentChartEntity.color = Color.GRAY;
-            if (yValue == 2) percentChartEntity.color = Color.BLUE;
-            if (yValue == 3) percentChartEntity.color = Color.GREEN;
+            if (yValue == 1) percentChartEntity.color = Color.parseColor("#6569FF");
+            if (yValue == 2) percentChartEntity.color = Color.parseColor("#B5E22B");
+            if (yValue == 3) percentChartEntity.color = Color.parseColor("#1FCC7B");
             percentChartEntities.add(percentChartEntity);
         }
 
