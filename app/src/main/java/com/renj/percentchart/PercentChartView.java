@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -132,14 +133,14 @@ public class PercentChartView extends View {
 
         typedArray.recycle();
 
-        if (isAnimation) {
+        if (animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL) {
             initAnimation();
             valueAnimator.setDuration(animationDuration);
         }
 
     }
 
-    /*=========【end】 setter and getter 【end】=========*/
+    /*=========【start】 setter and getter 【start】=========*/
 
     /**
      * 获取 x 轴标签值
@@ -565,18 +566,18 @@ public class PercentChartView extends View {
     }
 
     /**
-     * 是否需要动画
+     * 动画效果/类型
      *
-     * @return
+     * @return 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
      */
-    public boolean isAnimation() {
-        return isAnimation;
+    public int getAnimationType() {
+        return animationType;
     }
 
     /**
-     * 设置是否需要动画
+     * 设置动画效果/类型
      *
-     * @param animation
+     * @param animationType 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
      */
     public void setAnimation(boolean animation) {
         this.isAnimation = animation;
