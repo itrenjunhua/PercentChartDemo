@@ -24,6 +24,7 @@
         pcv:x_labelSize="11sp"
         pcv:y_axisColor="#ff0000"
         pcv:y_axisWidth="1dp"
-        pcv:y_labelSize="12sp" />
+        pcv:y_labelSize="12sp"
+        pcv:animation_type="all"/>
 
 </LinearLayout>

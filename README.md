@@ -55,8 +55,13 @@ Android 通过百分比填充指定颜色的图表，可以自定义横坐标、
         <!--y 轴上标签文字颜色-->
         <attr name="y_labelColor" format="color" />
 
-        <!--是否需要动画，默认需要-->
-        <attr name="is_need_animation" format="boolean" />
+         <!--动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y-->
+        <attr name="animation_type" format="enum">
+            <enum name="none" value="0" />
+            <enum name="x" value="1" />
+            <enum name="y" value="2" />
+            <enum name="all" value="3" />
+        </attr>
         <!--动画时长，默认 1200 毫秒-->
         <attr name="animation_duration" format="integer" />
     </declare-styleable>
