@@ -38,6 +38,24 @@ public class PercentChartView extends View {
             "23时", "00时", "01时", "02时", "03时", "04时", "05时", "06时", "07时", "08时", "09时"));
     // 默认 y 轴标签
     private List<String> yAxisLabels = new ArrayList<>(Arrays.asList("", "清醒", "浅睡", "深睡", ""));
+
+    // ************************ 动画类型常量 ************************ //
+    /**
+     * 0/none：不需要动画
+     */
+    public static final int ANIMATION_TYPE_NONE = 0;
+    /**
+     * 1/x：沿x轴方向动画
+     */
+    public static final int ANIMATION_TYPE_X = 1;
+    /**
+     * 2/y：沿y轴方向动画，默认
+     */
+    public static final int ANIMATION_TYPE_Y = 2;
+    /**
+     * 3/all：x轴和y轴方向动画
+     */
+    public static final int ANIMATION_TYPE_ALL = 3;
     // 数据集合
     private List<PercentChartEntity> percentChartEntities = new ArrayList<>();
     // 网格线画笔
@@ -73,8 +91,9 @@ public class PercentChartView extends View {
     private float yLabelSize = 14;        // y 轴上标签文字大小
     private int yLabelColor = 0xFF111111; // y 轴上标签文字颜色
 
-    private boolean isAnimation = true;   // 是否需要动画，默认有
-    private long animationDuration = 1200; // 动画时间，单位 ms
+    @IntRange(from = 0, to = 3)
+    private int animationType = ANIMATION_TYPE_Y;          // 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
+    private long animationDuration = 1200;  // 动画时间，单位 ms
     private float percentValue = 0;
     private ValueAnimator valueAnimator;
 
@@ -128,7 +147,7 @@ public class PercentChartView extends View {
         yLabelSize = typedArray.getDimension(R.styleable.PercentChartView_y_labelSize, yLabelSize);
         yLabelColor = typedArray.getColor(R.styleable.PercentChartView_y_labelColor, yLabelColor);
 
-        isAnimation = typedArray.getBoolean(R.styleable.PercentChartView_is_need_animation, isAnimation);
+        animationType = typedArray.getInteger(R.styleable.PercentChartView_animation_type, ANIMATION_TYPE_Y);
         animationDuration = typedArray.getInteger(R.styleable.PercentChartView_animation_duration, (int) animationDuration);
 
         typedArray.recycle();
@@ -194,7 +213,7 @@ public class PercentChartView extends View {
      */
     public void setChartData(List<PercentChartEntity> percentChartEntities) {
         this.percentChartEntities = percentChartEntities;
-        if (isAnimation) {
+        if (animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL) {
             if (valueAnimator == null) initAnimation();
             if (valueAnimator.isRunning()) valueAnimator.cancel();
             valueAnimator.setDuration(animationDuration);
@@ -579,9 +598,10 @@ public class PercentChartView extends View {
      *
      * @param animationType 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
      */
-    public void setAnimation(boolean animation) {
-        this.isAnimation = animation;
-        if (isAnimation && valueAnimator == null)
+    public void setAnimationType(@IntRange(from = 0, to = 3) int animationType) {
+        this.animationType = animationType;
+        if (animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL
+                && valueAnimator == null)
             initAnimation();
     }
 
@@ -656,8 +676,18 @@ public class PercentChartView extends View {
         float spacing = (measuredHeight - xLabelsHeight - yOffsetHeight) * 1.0f / (size - 1);
         float bottom = measuredHeight - xLabelsHeight;
         for (PercentChartEntity percentChartEntity : percentChartEntities) {
-            float right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
-            float top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing * percentValue;
+            float right, top;
+            // right
+            if (animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_ALL)
+                right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth) * percentValue;
+            else
+                right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
+            // top
+            if (animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL)
+                top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing * percentValue;
+            else
+                top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing;
+
             colorPaint.setColor(percentChartEntity.color);
             canvas.drawRect(left, top, right, bottom, colorPaint);
             left = right;
