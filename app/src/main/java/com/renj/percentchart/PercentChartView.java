@@ -684,9 +684,9 @@ public class PercentChartView extends View {
                 right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
             // top
             if (animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL)
-                top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing * percentValue;
+                top = bottom - percentChartEntity.yValue * spacing * percentValue;
             else
-                top = bottom - (yAxisLabels.size() - 1 - percentChartEntity.yValue) * spacing;
+                top = bottom - percentChartEntity.yValue * spacing;
 
             colorPaint.setColor(percentChartEntity.color);
             canvas.drawRect(left, top, right, bottom, colorPaint);
