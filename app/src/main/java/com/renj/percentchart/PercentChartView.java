@@ -4,14 +4,18 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -96,6 +100,10 @@ public class PercentChartView extends View {
     private long animationDuration = 1200;  // 动画时间，单位 ms
     private float percentValue = 0;
     private ValueAnimator valueAnimator;
+
+    private boolean drawFinishFlag = false; // 绘制完成标记
+    private boolean clickInvalidateView = false; // 是否点击事件触发的重绘
+    private List<PercentChartInfo> infoList = new ArrayList<>(); // 保存所有绘制区域信息
 
 
     public PercentChartView(Context context) {
@@ -221,6 +229,31 @@ public class PercentChartView extends View {
         } else {
             percentValue = 1;
             this.postInvalidate();
+        }
+
+        savePosition();
+    }
+
+    /**
+     * 保存每一个区域的位置，用于点击事件的判断
+     */
+    private void savePosition() {
+        infoList.clear();
+
+        int measuredWidth = getMeasuredWidth();
+        int measuredHeight = getMeasuredHeight();
+
+        float left = yLabelsWidth;
+        int size = yAxisLabels.size();
+        float spacing = (measuredHeight - xLabelsHeight - yOffsetHeight) * 1.0f / (size - 1);
+        float bottom = (measuredHeight - xLabelsHeight);
+        for (PercentChartEntity percentChartEntity : percentChartEntities) {
+            float right, top;
+            right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
+            top = bottom - percentChartEntity.yValue * spacing;
+            percentChartEntity.selected = false;
+            infoList.add(new PercentChartInfo(percentChartEntity, new RectF(left, top, right, bottom)));
+            left = right;
         }
     }
 
@@ -643,6 +676,7 @@ public class PercentChartView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        drawFinishFlag = false;
         int measuredWidth = getMeasuredWidth();
         int measuredHeight = getMeasuredHeight();
 
@@ -660,6 +694,32 @@ public class PercentChartView extends View {
         drawYText(measuredWidth, measuredHeight, canvas);
         // 绘制填充颜色
         drawFillColor(measuredWidth, measuredHeight, canvas);
+
+        drawFinishFlag = true;
+        clickInvalidateView = false;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        if (!drawFinishFlag) return super.onTouchEvent(event);
+
+        // 判断是否点击在图形区域
+        for (int i = 0; i < infoList.size(); i++) {
+            PercentChartInfo percentChartInfo = infoList.get(i);
+            if (percentChartInfo.rectPosition.contains(x, y)) {
+                percentChartInfo.percentChartEntity.selected = true;
+                clickInvalidateView = true;
+                this.postInvalidateView();
+                return true;
+            } else {
+                percentChartInfo.percentChartEntity.selected = false;
+            }
+        }
+
+        return super.onTouchEvent(event);
     }
 
     /**
@@ -678,17 +738,21 @@ public class PercentChartView extends View {
         for (PercentChartEntity percentChartEntity : percentChartEntities) {
             float right, top;
             // right
-            if (animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_ALL)
+            if ((animationType == ANIMATION_TYPE_X || animationType == ANIMATION_TYPE_ALL) && (!clickInvalidateView))
                 right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth) * percentValue;
             else
                 right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
             // top
-            if (animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL)
+            if ((animationType == ANIMATION_TYPE_Y || animationType == ANIMATION_TYPE_ALL) && (!clickInvalidateView))
                 top = bottom - percentChartEntity.yValue * spacing * percentValue;
             else
                 top = bottom - percentChartEntity.yValue * spacing;
 
-            colorPaint.setColor(percentChartEntity.color);
+            if (percentChartEntity.selected) {
+                colorPaint.setColor(Color.parseColor("#FF0000"));
+            } else {
+                colorPaint.setColor(percentChartEntity.color);
+            }
             canvas.drawRect(left, top, right, bottom, colorPaint);
             left = right;
         }
@@ -829,6 +893,17 @@ public class PercentChartView extends View {
         }
     }
 
+
+    private static class PercentChartInfo {
+        public PercentChartEntity percentChartEntity;
+        public RectF rectPosition;
+
+        public PercentChartInfo(PercentChartEntity percentChartEntity, RectF rectPosition) {
+            this.percentChartEntity = percentChartEntity;
+            this.rectPosition = rectPosition;
+        }
+    }
+
     /**
      * 需要的数据类型
      */
@@ -836,5 +911,16 @@ public class PercentChartView extends View {
         public float percent;
         public Integer color;
         public Integer yValue;
+
+        private boolean selected;
+
+        public PercentChartEntity() {
+        }
+
+        public PercentChartEntity(float percent, Integer color, Integer yValue) {
+            this.percent = percent;
+            this.color = color;
+            this.yValue = yValue;
+        }
     }
 }
