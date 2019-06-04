@@ -94,8 +94,11 @@ public class PercentChartView extends View {
     private float yLabelSize = 14;        // y 轴上标签文字大小
     private int yLabelColor = 0xFF111111; // y 轴上标签文字颜色
 
+    // 是否严格点击事件，默认false(true：表示点击位置必须完全在填充区域内；false：表示点击位置只需横坐标落在填充区域内)
+    private boolean strictClickEvent = false; // true 和 false 的区别就是响应点击事件时是否需要判断 y 坐标
+
     @IntRange(from = 0, to = 3)
-    private int animationType = ANIMATION_TYPE_Y;          // 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
+    private int animationType = ANIMATION_TYPE_Y; // 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
     private long animationDuration = 1200;  // 动画时间，单位 ms
     private float percentValue = 0;
     private ValueAnimator valueAnimator;
@@ -153,6 +156,8 @@ public class PercentChartView extends View {
 
         yLabelSize = typedArray.getDimension(R.styleable.PercentChartView_y_labelSize, yLabelSize);
         yLabelColor = typedArray.getColor(R.styleable.PercentChartView_y_labelColor, yLabelColor);
+
+        strictClickEvent = typedArray.getBoolean(R.styleable.PercentChartView_strict_clickEvent, strictClickEvent);
 
         animationType = typedArray.getInteger(R.styleable.PercentChartView_animation_type, ANIMATION_TYPE_Y);
         animationDuration = typedArray.getInteger(R.styleable.PercentChartView_animation_duration, (int) animationDuration);
@@ -630,6 +635,24 @@ public class PercentChartView extends View {
     }
 
     /**
+     * 获取是否严格点击事件
+     *
+     * @return
+     */
+    public boolean isStrictClickEvent() {
+        return strictClickEvent;
+    }
+
+    /**
+     * 是否严格点击事件 是否严格点击事件，默认false。true 和 false 的区别就是响应点击事件时是否需要判断 y 坐标
+     *
+     * @param strictClickEvent true：表示点击位置必须完全在填充区域内；false：表示点击位置只需横坐标落在填充区域内
+     */
+    public void setStrictClickEvent(boolean strictClickEvent) {
+        this.strictClickEvent = strictClickEvent;
+    }
+
+    /**
      * 动画效果/类型
      *
      * @return 动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y
@@ -721,14 +744,28 @@ public class PercentChartView extends View {
 
 
         // 判断是否点击在图形区域
-        for (int i = 0; i < infoList.size(); i++) {
-            PercentChartInfo percentChartInfo = infoList.get(i);
-            if (percentChartInfo.fillRectF.contains(x, y)) {
-                percentChartInfo.percentChartEntity.selected = true;
-                if (onSelectedChangeListener != null)
-                    onSelectedChangeListener.onSelectedChange(percentChartInfo.percentChartEntity, percentChartInfo.fillRectF, percentChartInfo.screenRectF);
-            } else {
-                percentChartInfo.percentChartEntity.selected = false;
+        if (strictClickEvent) { // 严格点击事件
+            for (int i = 0; i < infoList.size(); i++) {
+                PercentChartInfo percentChartInfo = infoList.get(i);
+                if (percentChartInfo.fillRectF.contains(x, y)) {
+                    percentChartInfo.percentChartEntity.selected = true;
+                    if (onSelectedChangeListener != null)
+                        onSelectedChangeListener.onSelectedChange(percentChartInfo.percentChartEntity, percentChartInfo.fillRectF, percentChartInfo.screenRectF);
+                } else {
+                    percentChartInfo.percentChartEntity.selected = false;
+                }
+            }
+        } else { // 不严格点击事件
+            for (int i = 0; i < infoList.size(); i++) {
+                PercentChartInfo percentChartInfo = infoList.get(i);
+                // 判断 x 轴方向，但是 y 轴也需要在图表范围内，点击横坐标标签无效
+                if ((x > percentChartInfo.fillRectF.left) && (x <= percentChartInfo.fillRectF.right) && (y < percentChartInfo.fillRectF.bottom)) {
+                    percentChartInfo.percentChartEntity.selected = true;
+                    if (onSelectedChangeListener != null)
+                        onSelectedChangeListener.onSelectedChange(percentChartInfo.percentChartEntity, percentChartInfo.fillRectF, percentChartInfo.screenRectF);
+                } else {
+                    percentChartInfo.percentChartEntity.selected = false;
+                }
             }
         }
 
@@ -975,6 +1012,7 @@ public class PercentChartView extends View {
         }
     }
 
+    /*======= 【start】 Listener 【start】 ========*/
     private OnSelectedChangeListener onSelectedChangeListener;
 
     public void setOnSelectedChangeListener(OnSelectedChangeListener onSelectedChangeListener) {
