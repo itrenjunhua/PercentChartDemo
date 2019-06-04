@@ -54,6 +54,8 @@ Android 通过百分比填充指定颜色的图表，可以自定义横坐标、
         <attr name="y_labelSize" format="dimension" />
         <!--y 轴上标签文字颜色-->
         <attr name="y_labelColor" format="color" />
+        <!--是否严格点击事件，默认false(true：表示点击位置必须完全在填充区域内；false：表示点击位置只需横坐标落在填充区域内)-->
+        <attr name="strict_clickEvent" format="boolean"/>
 
          <!--动画效果/类型  0/none：不需要动画 1/x：沿x轴方向动画 2/y：沿y轴方向动画 3/all：x轴和y轴方向动画，默认 2/y-->
         <attr name="animation_type" format="enum">
