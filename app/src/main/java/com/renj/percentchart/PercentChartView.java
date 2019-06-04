@@ -165,6 +165,13 @@ public class PercentChartView extends View {
             valueAnimator.setDuration(animationDuration);
         }
 
+
+        this.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                savePosition();
+            }
+        });
     }
 
     /*=========【start】 setter and getter 【start】=========*/
@@ -711,13 +718,13 @@ public class PercentChartView extends View {
             PercentChartInfo percentChartInfo = infoList.get(i);
             if (percentChartInfo.rectPosition.contains(x, y)) {
                 percentChartInfo.percentChartEntity.selected = true;
-                clickInvalidateView = true;
-                this.postInvalidateView();
-                return true;
             } else {
                 percentChartInfo.percentChartEntity.selected = false;
             }
         }
+
+        clickInvalidateView = true;
+        this.postInvalidateView();
 
         return super.onTouchEvent(event);
     }
