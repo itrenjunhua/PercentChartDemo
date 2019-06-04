@@ -1,8 +1,10 @@
 package com.renj.percentchart;
 
 import android.graphics.Color;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -22,6 +24,12 @@ public class MainActivity extends AppCompatActivity {
         btReLoad = findViewById(R.id.bt_reload);
         percentView = findViewById(R.id.percent_view);
 
+        percentView.setOnSelectedChangeListener(new PercentChartView.OnSelectedChangeListener() {
+            @Override
+            public void onSelectedChange(PercentChartView.PercentChartEntity percentChartEntity, RectF fillRectF, RectF screenRectF) {
+                Log.i("MainActivity", "fillRectF: " + fillRectF + "  --  screenRectF: " + screenRectF);
+            }
+        });
 
         btReLoad.setOnClickListener(new View.OnClickListener() {
             @Override

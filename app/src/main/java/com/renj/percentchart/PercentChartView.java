@@ -14,7 +14,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -250,6 +249,10 @@ public class PercentChartView extends View {
         int measuredWidth = getMeasuredWidth();
         int measuredHeight = getMeasuredHeight();
 
+        // 获取控件在屏幕中的文职
+        int[] out = new int[2];
+        getLocationOnScreen(out);
+
         float left = yLabelsWidth;
         int size = yAxisLabels.size();
         float spacing = (measuredHeight - xLabelsHeight - yOffsetHeight) * 1.0f / (size - 1);
@@ -259,7 +262,9 @@ public class PercentChartView extends View {
             right = left + percentChartEntity.percent * (measuredWidth - yLabelsWidth - xOffsetWidth);
             top = bottom - percentChartEntity.yValue * spacing;
             percentChartEntity.selected = false;
-            infoList.add(new PercentChartInfo(percentChartEntity, new RectF(left, top, right, bottom)));
+            infoList.add(new PercentChartInfo(percentChartEntity,
+                    new RectF(left, top, right, bottom),
+                    new RectF(left + out[0], top + out[1], right + out[0], bottom + out[1])));
             left = right;
         }
     }
@@ -712,12 +717,16 @@ public class PercentChartView extends View {
         float y = event.getY();
 
         if (!drawFinishFlag) return super.onTouchEvent(event);
+        if (valueAnimator != null && valueAnimator.isRunning()) return super.onTouchEvent(event);
+
 
         // 判断是否点击在图形区域
         for (int i = 0; i < infoList.size(); i++) {
             PercentChartInfo percentChartInfo = infoList.get(i);
-            if (percentChartInfo.rectPosition.contains(x, y)) {
+            if (percentChartInfo.fillRectF.contains(x, y)) {
                 percentChartInfo.percentChartEntity.selected = true;
+                if (onSelectedChangeListener != null)
+                    onSelectedChangeListener.onSelectedChange(percentChartInfo.percentChartEntity, percentChartInfo.fillRectF, percentChartInfo.screenRectF);
             } else {
                 percentChartInfo.percentChartEntity.selected = false;
             }
@@ -936,11 +945,13 @@ public class PercentChartView extends View {
 
     private static class PercentChartInfo {
         public PercentChartEntity percentChartEntity;
-        public RectF rectPosition;
+        public RectF fillRectF; // 填充内容区域
+        public RectF screenRectF; // 控件在屏幕中的区域
 
-        public PercentChartInfo(PercentChartEntity percentChartEntity, RectF rectPosition) {
+        public PercentChartInfo(PercentChartEntity percentChartEntity, RectF fillRectF, RectF screenRectF) {
             this.percentChartEntity = percentChartEntity;
-            this.rectPosition = rectPosition;
+            this.fillRectF = fillRectF;
+            this.screenRectF = screenRectF;
         }
     }
 
@@ -962,5 +973,25 @@ public class PercentChartView extends View {
             this.color = color;
             this.yValue = yValue;
         }
+    }
+
+    private OnSelectedChangeListener onSelectedChangeListener;
+
+    public void setOnSelectedChangeListener(OnSelectedChangeListener onSelectedChangeListener) {
+        this.onSelectedChangeListener = onSelectedChangeListener;
+    }
+
+    /**
+     * 点击选中改变监听
+     */
+    public interface OnSelectedChangeListener {
+        /**
+         * 回调
+         *
+         * @param percentChartEntity 选中位置内容
+         * @param fillRectF          填充颜色部分在当前控件中的区域
+         * @param screenRectF        填充颜色部分在整个屏幕中的区域
+         */
+        void onSelectedChange(PercentChartEntity percentChartEntity, RectF fillRectF, RectF screenRectF);
     }
 }
