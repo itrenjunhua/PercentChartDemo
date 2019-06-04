@@ -756,13 +756,46 @@ public class PercentChartView extends View {
                 top = bottom - percentChartEntity.yValue * spacing;
 
             if (percentChartEntity.selected) {
-                colorPaint.setColor(Color.parseColor("#FF0000"));
+                colorPaint.setColor(modifyColor(percentChartEntity.color));
             } else {
                 colorPaint.setColor(percentChartEntity.color);
             }
             canvas.drawRect(left, top, right, bottom, colorPaint);
             left = right;
         }
+    }
+
+    /**
+     * 动态修改颜色值
+     *
+     * @param color
+     * @return
+     */
+    private int modifyColor(int color) {
+        int alpha = Color.alpha(color);
+        int red = Color.red(color);
+        int green = Color.green(color);
+        int blue = Color.blue(color);
+        if (red > 35) {
+            red = red - 35;
+        } else {
+            red = 0;
+        }
+        if (green > 35) {
+            green = green - 35;
+        } else {
+            green = 0;
+        }
+        if (blue > 35) {
+            blue = blue - 35;
+        } else {
+            green = 0;
+        }
+
+        if (red == 0 && green == 0 && blue == 0) {
+            alpha = 125;
+        }
+        return Color.argb(alpha, red, green, blue);
     }
 
     /**
